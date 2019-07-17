@@ -2,30 +2,33 @@
 
 > Create an animated countdown timer for use within HTML emails
 
-## Getting started
-- Upload files to server
+This is a fork of https://github.com/woolm110/email-countdown-timer, modified to work with composer and be 
+a little less opinionated about how its used (it just spits out the gif as a string for you to do with as you please) 
+
+## Installation
+`composer require joe-pritchard/email-countdown-timer`
 
 ## Usage
-- Navigate to your script in the browser and append the time you want to countdown to in the querystring parameter `time`. e.g. `http://[server-address]/countdown.php?time=2016-12-25+00:00:01`.
-
-To include the countdown timer in your HTML email you simply need to create an image tag and in the `src` set it to the browser address. *Note: Animated gifs are not supported in Outlook and for these the first frame will be shown*.
+- Generate a GIF countdown timer using the CountdownTimer class:
+```$php
+$gif = new CountdownTimer($settings);
+$gif->getAnimation(); // this is the raw gif as a string
+```
 
 ## Settings
 
-The countdown timer can be customised to fit your style. The follow can be modified using query string parameters.
-- time
-- width
-- height
-- boxColor
-- font
-- fontColor
-- fontSize
-- xOffset
-- yOffset
-- labelOffsets
-
-An example of this would be `http://[server-address]/countdown.php?time=2016-12-25+00:00:01&width=640&height=110&boxColor=8B2860&font=BebasNeue&fontColor=FBB92C&fontSize=60&xOffset=155&yOffset=70&labelOffsets=1.4,5,8,11`.
+Use the following keys in the settings array to modify the countdown timer to fit your needs. 
+- time (string) - This is the time being counted down to 
+- width (int)
+- height (int)
+- boxColor (hex colour)
+- font (string)
+- fontColor (hex colour)
+- fontSize (int)
+- xOffset (int)
+- yOffset (int)
+- labelOffsets (int[])
 
 ### Fonts
 
-Any font file can be used as the base font for the countdowm timer. To use a custom font you'll need to upload it to the `fonts` directory and reference the exact name in the query string parameter `font`. *Note: fonts must be uploaded using the `ttf` file extension*.
+Any font file can be used as the base font for the countdowm timer. To use a custom font reference its absolute path in the settings parameter `font`. *Note: fonts must be uploaded using the `ttf` file extension*.

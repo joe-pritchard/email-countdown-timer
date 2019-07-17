@@ -1,0 +1,23 @@
+{
+  "name": "joe-pritchard/email-countdown-timer",
+  "description": "Animated countdown timer for use within emails",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Joe Pritchard",
+      "email": "joe@joe-pritchard.uk"
+    },
+    {
+      "name": "Max Woollard",
+      "homepage":"https://github.com/woolm110"
+    }
+  ],
+  "require": {
+    "php": "^7.0",
+    "ext-gd": "*"
+  },
+  "autoload": {
+    "psr-4": {"JoePritchard\\EmailCountdownTimer\\": "src/"}
+  }
+}
