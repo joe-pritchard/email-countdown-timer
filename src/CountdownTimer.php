@@ -133,7 +133,9 @@ class CountdownTimer
         $this->fontSettings['path'] = $font;
         $this->fontSettings['color'] = imagecolorallocate($this->box, $this->fontColor[0], $this->fontColor[1], $this->fontColor[2]);
         $this->fontSettings['size'] = $settings['fontSize'];
-        $this->fontSettings['characterWidth'] = imagefontwidth($this->fontSettings['path']);
+
+        // dunno, using magic number...
+        $this->fontSettings['characterWidth'] = imagefontwidth(2);
 
         // get the width of each character
         $string = "0:";
@@ -218,7 +220,7 @@ class CountdownTimer
                 $image,
                 15,
                 0,
-                $this->xOffset + ($this->textBoxWidth * $this->labelOffsets[$key]),
+                (int)($this->xOffset + ($this->textBoxWidth * $this->labelOffsets[$key])),
                 98,
                 $font['color'],
                 $font['path'],
