@@ -11,14 +11,13 @@ a little less opinionated about how its used (it just spits out the gif as a str
 ## Usage
 - Generate a GIF countdown timer using the CountdownTimer class:
 ```$php
-$gif = new CountdownTimer($settings);
+$gif = new CountdownTimer($settings, $target);
 $gif->getAnimation(); // this is the raw gif as a string
 ```
 
 ## Settings
 
 Use the following keys in the settings array to modify the countdown timer to fit your needs. 
-- time (string) - This is the time being counted down to 
 - width (int)
 - height (int)
 - boxColor (hex colour)
@@ -28,6 +27,35 @@ Use the following keys in the settings array to modify the countdown timer to fi
 - xOffset (int)
 - yOffset (int)
 - labelOffsets (int[])
+
+The second argument is a DateTime object representing a time in the future to count down to.
+
+## Example
+
+```$php
+
+$target = new \DateTime('tomorrow');
+$settings = [
+    'time' => $request->query('time'),
+    'width' => 640,
+    'height' => 110,
+    'boxColor' => '#000',
+    'font' => 'BebasNeue',
+    'fontColor' => '#fff',
+    'fontSize' => 60,
+    'xOffset' => 155,
+    'yOffset' => 70,
+    'labelOffsets' => "0.5,3,5.2,7.6",
+];
+
+$gif = new CountdownTimer($settings, $target);
+
+header('Content-Type', 'image/gif');
+header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0');
+header('Pragma', 'no-cache');
+
+echo $gif->getAnimation();
+```
 
 ### Fonts
 

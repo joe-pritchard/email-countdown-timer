@@ -57,9 +57,9 @@ class CountdownTimer
     private $delays = [];
 
     /**
-     * @var array
+     * @var DateTime
      */
-    private $date = [];
+    private $now;
 
     /**
      * @var array
@@ -98,18 +98,29 @@ class CountdownTimer
     private $loops;
 
     /**
+     * The datetime we are counting down to
+     * @var DateTime target
+     */
+    private $target;
+
+    /**
      * CountdownTimer constructor.
      *
-     * @param $settings
+     * @param          $settings
+     *
+     * @param DateTime $target
      *
      * @throws \Exception
      */
-    public function __construct($settings)
+    public function __construct($settings, DateTime $target)
     {
         $font = (file_exists($settings['font']) ? $settings['font'] : $this->fontPath . $settings['font']) . '.ttf';
         if (!file_exists($font)) {
             throw new \Exception('Invalid font \'' . $font . '\'');
         }
+
+        $this->target = $target;
+        $this->now = new DateTime(date('r'));
 
         $this->width = $settings['width'];
         $this->height = $settings['height'];
@@ -120,11 +131,6 @@ class CountdownTimer
         $this->fontColor = Util::hex2rgb($settings['fontColor']);
 
         $this->labelOffsets = explode(',', $settings['labelOffsets']);
-
-        $this->date['time'] = $settings['time'];
-        $this->date['futureDate'] = new DateTime(date('r', strtotime($settings['time'])));
-        $this->date['timeNow'] = time();
-        $this->date['now'] = new DateTime(date('r'));
 
         // create new images
         $this->box = imagecreatetruecolor($this->width, $this->height);
@@ -177,14 +183,14 @@ class CountdownTimer
         $this->textBoxWidth = $text_box_dimensions[2];
         $this->textBoxHeight = abs($text_box_dimensions[1] + $text_box_dimensions[7]);
 
-        $this->applyTextToImage($this->base, $this->fontSettings, $this->date);
+        $this->applyTextToImage($this->base, $this->fontSettings, $this->now);
 
         // create each frame
         for ($second = 0; $second <= $this->seconds; $second++) {
             $layer = imagecreatetruecolor($this->width, $this->height);
             Util::createFilledBox($layer, $this->width, $this->height, $this->boxColor);
 
-            $this->applyTextToImage($layer, $this->fontSettings, $this->date);
+            $this->applyTextToImage($layer, $this->fontSettings, $this->now);
         }
     }
 
@@ -200,11 +206,11 @@ class CountdownTimer
     private function applyTextToImage(&$image, array $font, array $date)
     {
         $interval = date_diff(
-            $date['futureDate'],
+            $this->target,
             $date['now']
         );
 
-        if ($date['futureDate'] < $date['now']) {
+        if ($this->target < $date['now']) {
             $text = $interval->format('00:00:00:00');
             $this->loops = 1;
         } else {
@@ -237,7 +243,7 @@ class CountdownTimer
         $this->delays[] = $this->delay;
         ob_end_clean();
 
-        $this->date['now']->modify('+1 second');
+        $this->now->modify('+1 second');
     }
 
     /**
