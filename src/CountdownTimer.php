@@ -183,14 +183,14 @@ class CountdownTimer
         $this->textBoxWidth = $text_box_dimensions[2];
         $this->textBoxHeight = abs($text_box_dimensions[1] + $text_box_dimensions[7]);
 
-        $this->applyTextToImage($this->base, $this->fontSettings, $this->now);
+        $this->applyTextToImage($this->base, $this->fontSettings);
 
         // create each frame
         for ($second = 0; $second <= $this->seconds; $second++) {
             $layer = imagecreatetruecolor($this->width, $this->height);
             Util::createFilledBox($layer, $this->width, $this->height, $this->boxColor);
 
-            $this->applyTextToImage($layer, $this->fontSettings, $this->now);
+            $this->applyTextToImage($layer, $this->fontSettings);
         }
     }
 
@@ -203,14 +203,14 @@ class CountdownTimer
      *
      * @return void
      */
-    private function applyTextToImage(&$image, array $font, array $date)
+    private function applyTextToImage(&$image, array $font)
     {
         $interval = date_diff(
             $this->target,
-            $date['now']
+            $this->now
         );
 
-        if ($this->target < $date['now']) {
+        if ($this->target < $this->now) {
             $text = $interval->format('00:00:00:00');
             $this->loops = 1;
         } else {
