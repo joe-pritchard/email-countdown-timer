@@ -124,7 +124,7 @@ class CountdownTimer
         $this->date['time'] = $settings['time'];
         $this->date['futureDate'] = new DateTime(date('r', strtotime($settings['time'])));
         $this->date['timeNow'] = time();
-        $this->date['now'] = new DateTime(date('r', time()));
+        $this->date['now'] = new DateTime(date('r'));
 
         // create new images
         $this->box = imagecreatetruecolor($this->width, $this->height);
