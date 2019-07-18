@@ -134,10 +134,11 @@ class CountdownTimer
 
         $this->calculateTextBoxDimensions();
 
-        $this->base = $this->createBase($background, true);
-
         $this->boxColor = Util::hex2rgb($settings['boxColor']);
         $this->fontColor = Util::hex2rgb($settings['fontColor']);
+
+        $this->base = $this->createBase($background, true);
+
         $this->fontSettings['color'] = imagecolorallocate($this->base, $this->fontColor[0], $this->fontColor[1], $this->fontColor[2]);
 
         // for a gif with no supplied background image, create a filled rectangle of color $this->boxColor
