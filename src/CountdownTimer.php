@@ -17,9 +17,15 @@ class CountdownTimer
     private $base;
 
     /**
-     * @var object
+     * One for each second in the animation
+     * @var array
      */
-    private $box;
+    private $frames = [];
+
+    /**
+     * @var array
+     */
+    private $delays = [];
 
     /**
      * @var int
@@ -45,16 +51,6 @@ class CountdownTimer
      * @var int
      */
     private $delay = 100;
-
-    /**
-     * @var array
-     */
-    private $frames = [];
-
-    /**
-     * @var array
-     */
-    private $delays = [];
 
     /**
      * @var DateTime
@@ -112,7 +108,7 @@ class CountdownTimer
      *
      * @throws \Exception
      */
-    public function __construct($settings, DateTime $target)
+    public function __construct($settings, DateTime $target, ?string $background = null)
     {
         $font = (file_exists($settings['font']) ? $settings['font'] : $this->fontPath . $settings['font']) . '.ttf';
         if (!file_exists($font)) {
@@ -122,26 +118,28 @@ class CountdownTimer
         $this->target = $target;
         $this->now = new DateTime(date('r'));
 
-        $this->width = $settings['width'];
-        $this->height = $settings['height'];
-        $this->boxColor = $settings['boxColor'];
+        // character width and height will inform our offsets if we need to adjust them for a background image
+        $this->fontSettings['characterWidth'] = imagefontwidth(2);
+
+        /**
+         * create new base image. If a background was specified then we'll use that as our base image
+         * and it will override the width, height, and both text offsets
+         */
         $this->xOffset = $settings['xOffset'];
         $this->yOffset = $settings['yOffset'];
+        $this->width = $settings['width'];
+        $this->height = $settings['height'];
+
+        $this->base = $this->createBase($background, true);
+
         $this->boxColor = Util::hex2rgb($settings['boxColor']);
         $this->fontColor = Util::hex2rgb($settings['fontColor']);
 
         $this->labelOffsets = explode(',', $settings['labelOffsets']);
 
-        // create new images
-        $this->box = imagecreatetruecolor($this->width, $this->height);
-        $this->base = imagecreatetruecolor($this->width, $this->height);
-
         $this->fontSettings['path'] = $font;
-        $this->fontSettings['color'] = imagecolorallocate($this->box, $this->fontColor[0], $this->fontColor[1], $this->fontColor[2]);
+        $this->fontSettings['color'] = imagecolorallocate($this->base, $this->fontColor[0], $this->fontColor[1], $this->fontColor[2]);
         $this->fontSettings['size'] = $settings['fontSize'];
-
-        // dunno, using magic number...
-        $this->fontSettings['characterWidth'] = imagefontwidth(2);
 
         // get the width of each character
         $string = "0:";
@@ -157,17 +155,43 @@ class CountdownTimer
             ];
         }
 
-        $this->images = [
-            'box' => $this->box,
-            'base' => $this->base,
-        ];
-
-        // create empty filled rectangles
-        foreach ($this->images as $image) {
-            Util::createFilledBox($image, $this->width, $this->height, $this->boxColor);
+        // for a gif with no supplied background image, create a filled rectangle of color $this->boxColor
+        if ($background === null) {
+            Util::createFilledBox($this->base, $this->width, $this->height, $this->boxColor);
         }
 
-        $this->createFrames();
+        $this->createFrames($background);
+    }
+
+    /**
+     * Generate the base image to be used for all frames
+     *
+     * @param string|null $background
+     *
+     * @param bool        $recalculate_dimensions
+     *
+     * @throws \Exception
+     * @return false|resource
+     */
+    private function createBase(?string $background, $recalculate_dimensions = false)
+    {
+        if ($background === null) {
+            $base = imagecreatetruecolor($this->width, $this->height);
+            Util::createFilledBox($base, $this->width, $this->height, $this->boxColor);
+        } elseif (file_exists($background)) {
+            $base = imagecreatefromjpeg($background);
+
+            // if told to do so, recalculate the image's width and height based on the background we just loaded
+            if ($recalculate_dimensions) {
+                $this->width = imagesx($base);
+                $this->height = imagesy($base);
+            }
+
+        } else {
+            throw new \Exception('Background image specified but does not exist: \'' . $background . '\'');
+        }
+
+        return $base;
     }
 
     /**
@@ -175,7 +199,7 @@ class CountdownTimer
      *
      * @return void
      */
-    public function createFrames()
+    public function createFrames(?string $background)
     {
         $this->boundingBox = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '00:00:00:00');
         $text_box_dimensions = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '0');
@@ -187,8 +211,7 @@ class CountdownTimer
 
         // create each frame
         for ($second = 0; $second <= $this->seconds; $second++) {
-            $layer = imagecreatetruecolor($this->width, $this->height);
-            Util::createFilledBox($layer, $this->width, $this->height, $this->boxColor);
+            $layer = $this->createBase($background);
 
             $this->applyTextToImage($layer, $this->fontSettings);
         }
