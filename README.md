@@ -26,8 +26,6 @@ Use the following keys in the settings array to modify the countdown timer to fi
 - font (string)
 - fontColor (hex colour)
 - fontSize (int)
-- xOffset (int)
-- yOffset (int)
 - labelOffsets (float[]) eg 0.5,3,5.4,7.6 - each number is applied one of the labels (Days, Hrs, Mins, Secs) respectively
                          and is used as a multiplier on the width of a single character to push the label to the right 
                          (for example, 0.5 moves the label to the right relative to xOffset by the half width of a 
@@ -36,8 +34,8 @@ Use the following keys in the settings array to modify the countdown timer to fi
 The second argument is a DateTime object representing a time in the future to count down to.
 
 The third argument is optional, and is the absolute path to a background image to use instead of a coloured box.
-If a background image is provided, then the xOffset, yOffset, and boxColor values will be ignored 
-(but still need to be present in the settings array). New offsets will be calculated based on the size of the image.
+If a background image is provided, then the width, height, and boxColor values will be ignored 
+New sizes will be calculated based on the size of the image.
 
 ## Example
 

@@ -124,18 +124,19 @@ class CountdownTimer
          * and it will override the width, height, and both text offsets
          */
         $this->labelOffsets = explode(',', $settings['labelOffsets']);
-        $this->xOffset = $settings['xOffset'];
-        $this->yOffset = $settings['yOffset'];
-        $this->width = $settings['width'];
-        $this->height = $settings['height'];
 
         $this->fontSettings['path'] = $font;
         $this->fontSettings['size'] = $settings['fontSize'];
 
         $this->calculateTextBoxDimensions();
 
-        $this->boxColor = Util::hex2rgb($settings['boxColor']);
         $this->fontColor = Util::hex2rgb($settings['fontColor']);
+
+        if ($background === null) {
+            $this->boxColor = Util::hex2rgb($settings['boxColor']);
+            $this->width = $settings['width'];
+            $this->height = $settings['height'];
+        }
 
         $this->base = $this->createBase($background, true);
 
@@ -166,18 +167,19 @@ class CountdownTimer
             Util::createFilledBox($base, $this->width, $this->height, $this->boxColor);
         } elseif (file_exists($background)) {
             $base = imagecreatefromjpeg($background);
-
-            // if told to do so, recalculate the image's width and height based on the background we just loaded
             if ($recalculate_dimensions) {
+                // we only need to calculate the width and height if we're given a background, otherwise they're params
                 $this->width = imagesx($base);
                 $this->height = imagesy($base);
-
-                $this->xOffset = (int)(($this->width / 2) - ($this->textBoxWidth / 2));
-                $this->yOffset = (int)(($this->height / 2) - ($this->textBoxHeight / 2));
             }
-
         } else {
             throw new \Exception('Background image specified but does not exist: \'' . $background . '\'');
+        }
+
+        // we calculate the offsets regardless of whether we're given a background
+        if ($recalculate_dimensions) {
+            $this->xOffset = (int)(($this->width / 2) - ($this->textBoxWidth / 2));
+            $this->yOffset = (int)(($this->height / 2) - ($this->textBoxHeight / 2));
         }
 
         return $base;
