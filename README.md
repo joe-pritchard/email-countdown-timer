@@ -3,7 +3,9 @@
 > Create an animated countdown timer for use within HTML emails
 
 This is a fork of https://github.com/woolm110/email-countdown-timer, modified to work with composer and be 
-a little less opinionated about how its used (it just spits out the gif as a string for you to do with as you please) 
+a little less opinionated about how its used (it just spits out the gif as a string for you to do with as you please).
+
+It also adds the option to pass in a background image to use behind the countdown instead of a solid colour.
 
 ## Installation
 `composer require joe-pritchard/email-countdown-timer`
