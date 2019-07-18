@@ -63,11 +63,6 @@ class CountdownTimer
     private $fontSettings = [];
 
     /**
-     * @var array
-     */
-    private $boundingBox = [];
-
-    /**
      * @var string
      */
     private $fontPath = __DIR__ . '/../fonts/';
@@ -86,6 +81,11 @@ class CountdownTimer
      * @var int textBoxHeight
      */
     private $textBoxHeight;
+
+    /**
+     * @var int characterWidth
+     */
+    private $characterWidth;
 
     /**
      *
@@ -118,42 +118,27 @@ class CountdownTimer
         $this->target = $target;
         $this->now = new DateTime(date('r'));
 
-        // character width and height will inform our offsets if we need to adjust them for a background image
-        $this->fontSettings['characterWidth'] = imagefontwidth(2);
 
         /**
          * create new base image. If a background was specified then we'll use that as our base image
          * and it will override the width, height, and both text offsets
          */
+        $this->labelOffsets = explode(',', $settings['labelOffsets']);
         $this->xOffset = $settings['xOffset'];
         $this->yOffset = $settings['yOffset'];
         $this->width = $settings['width'];
         $this->height = $settings['height'];
 
+        $this->fontSettings['path'] = $font;
+        $this->fontSettings['size'] = $settings['fontSize'];
+
+        $this->calculateTextBoxDimensions();
+
         $this->base = $this->createBase($background, true);
 
         $this->boxColor = Util::hex2rgb($settings['boxColor']);
         $this->fontColor = Util::hex2rgb($settings['fontColor']);
-
-        $this->labelOffsets = explode(',', $settings['labelOffsets']);
-
-        $this->fontSettings['path'] = $font;
         $this->fontSettings['color'] = imagecolorallocate($this->base, $this->fontColor[0], $this->fontColor[1], $this->fontColor[2]);
-        $this->fontSettings['size'] = $settings['fontSize'];
-
-        // get the width of each character
-        $string = "0:";
-        $size = $this->fontSettings['size'];
-        $angle = 0;
-        $fontfile = $this->fontSettings['path'];
-
-        $strlen = strlen($string);
-        for ($character_index = 0; $character_index < $strlen; $character_index++) {
-            $dimensions = imagettfbbox($size, $angle, $fontfile, $string[$character_index]);
-            $this->fontSettings['characterWidths'][] = [
-                $string[$character_index] => $dimensions[2],
-            ];
-        }
 
         // for a gif with no supplied background image, create a filled rectangle of color $this->boxColor
         if ($background === null) {
@@ -185,6 +170,9 @@ class CountdownTimer
             if ($recalculate_dimensions) {
                 $this->width = imagesx($base);
                 $this->height = imagesy($base);
+
+                $this->xOffset = (int)(($this->width / 2) - ($this->textBoxWidth / 2));
+                $this->yOffset = (int)(($this->height / 2) - ($this->textBoxHeight / 2));
             }
 
         } else {
@@ -194,6 +182,16 @@ class CountdownTimer
         return $base;
     }
 
+    private function calculateTextBoxDimensions()
+    {
+        $text_box_dimensions  = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '00:00:00:00');
+        $character_dimensions = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '0');
+
+        $this->textBoxWidth = $text_box_dimensions[2];
+        $this->textBoxHeight = abs($text_box_dimensions[1] + $text_box_dimensions[7]);
+        $this->characterWidth = $character_dimensions[2];
+    }
+
     /**
      * Create all of the frames for the countdown timer
      *
@@ -201,11 +199,6 @@ class CountdownTimer
      */
     public function createFrames(?string $background)
     {
-        $this->boundingBox = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '00:00:00:00');
-        $text_box_dimensions = imagettfbbox($this->fontSettings['size'], 0, $this->fontSettings['path'], '0');
-
-        $this->textBoxWidth = $text_box_dimensions[2];
-        $this->textBoxHeight = abs($text_box_dimensions[1] + $text_box_dimensions[7]);
 
         $this->applyTextToImage($this->base, $this->fontSettings);
 
@@ -213,7 +206,7 @@ class CountdownTimer
         for ($second = 0; $second <= $this->seconds; $second++) {
             $layer = $this->createBase($background);
 
-            $this->applyTextToImage($layer, $this->fontSettings);
+            $this->applyTextToImage($layer);
         }
     }
 
@@ -226,7 +219,7 @@ class CountdownTimer
      *
      * @return void
      */
-    private function applyTextToImage(&$image, array $font)
+    private function applyTextToImage(&$image)
     {
         $interval = date_diff(
             $this->target,
@@ -249,16 +242,25 @@ class CountdownTimer
                 $image,
                 15,
                 0,
-                (int)($this->xOffset + ($this->textBoxWidth * $this->labelOffsets[$key])),
-                98,
-                $font['color'],
-                $font['path'],
+                (int)($this->xOffset + ($this->characterWidth * $this->labelOffsets[$key])),
+                $this->yOffset + 30,
+                $this->fontSettings['color'],
+                $this->fontSettings['path'],
                 $label
             );
         }
 
         // apply time to new image
-        imagettftext($image, $font['size'], 0, $this->xOffset, $this->yOffset, $font['color'], $font['path'], $text);
+        imagettftext(
+            $image,
+            $this->fontSettings['size'],
+            0,
+            $this->xOffset,
+            $this->yOffset,
+            $this->fontSettings['color'],
+            $this->fontSettings['path'],
+            $text
+        );
 
         ob_start();
         imagegif($image);
